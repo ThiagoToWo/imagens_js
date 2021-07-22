@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Espectro de Cores</title>
+	<meta charset='utf-8'/>
+	<style>
+		#canvas {
+			position: absolute;
+			height: 50%;			
+			border: 2px solid;
+		}
+		input {
+			position: absolute;
+			top: 57%;
+			left: 2%;
+		}
+		span {
+			position: absolute;
+			top: 65%;
+			left: 2%;
+		}
+		#histo {
+			position: absolute;
+			top: 70%;
+			left: 2%;
+			width: 96%;
+			height: 20%;
+			border-bottom: 2px solid;
+			border-top: 2px solid;
+		}
+	</style>
+	<script>
+	var canvas; // canvas
+	var ctx; // contexto 2d do canvas
+	var histoCanvas; // canvas onde terá o histograma das cores
+	var histo = {}; // objeto literal histograma;
+	var file; // input de arquivos
+		
+	function init() {
+		canvas = document.getElementById('canvas');
+		ctx = canvas.getContext('2d');
+		histoCanvas = document.getElementById('histo');
+		ctx_h = histoCanvas.getContext('2d');
+		file = document.getElementById('file');
+		
+		file.onchange = function() {
+			histo = {};
+			var foto = this.files[0];
+			var leitor = new FileReader();
+			leitor.readAsDataURL(foto);
+			
+			leitor.onload = function() {
+				var img = new Image();
+				img.src = leitor.result;
+				img.onload = function() {
+					ctx.drawImage(
+						img, 
+						0, 0, img.width, img.height, 
+						0, 0, canvas.width, canvas.height
+					);					
+					criarHistograma(img);
+				}				
+			}
+
+			leitor.onerror = function(e) {
+				alert(e);
+			}
+		}
+	}
+
+	function criarHistograma(imagem) {
+		var pixel;
+		var data;
+		for (var x = 0; x < imagem.width; x++) {
+			for (var y = 0; y < imagem.height; y++) {
+				pixel = ctx.getImageData(x, y, 1, 1);
+				data = pixel.data;
+				alimentarHistograma(data, histo);
+			}
+		}
+		desenharHistograma(ctx_h, histo);
+	}
+	
+	function alimentarHistograma(data, histograma) {
+		var s0 = data[0].toString(16);
+		var s1 = data[1].toString(16);
+		var s2 = data[2].toString(16);
+		var s = '0x' + s0 + s1 + s2;
+		
+		if (!histograma[s]) histograma[s] = 1;
+		else histograma[s] += 1;
+	}
+	
+	function desenharHistograma(context, histograma) {
+		var base = 0;
+		var total_freq = frequencia(histograma);
+		var largura_canvas = context.canvas.width;
+		var largura_grupo = largura_canvas / total_freq;
+		var altura_canvas = context.canvas.height;
+		
+		for (var cor in histograma) {
+			context.fillStyle = '#' + cor.substring(2);
+			context.fillRect(base, 0, histograma[cor] * largura_grupo, altura_canvas);
+			base += histograma[cor] * largura_grupo;
+		}
+	}
+	
+	function frequencia(o) {
+		var total = 0;
+		for (var i in o) {
+			total += o[i];
+		}
+		return total;
+	}
+	</script>
+</head>
+<body onload='init();'>
+	<b>Selecione a imagem</b>
+	<br/>
+	<canvas id='canvas' width='400' height='400'></canvas>
+	<input type='file' id='file'></file>
+	<span><b>Espectro de Cores</b></span>
+	<canvas id='histo'></canvas>
+</body>
+</html>
