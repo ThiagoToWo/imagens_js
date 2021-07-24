@@ -4,8 +4,16 @@
 	<title>Espectro de Cores</title>
 	<meta charset='utf-8'/>
 	<style>
+		#imagem {
+			position: absolute;
+			top: 0%;
+			left: 2%;
+		}
 		#canvas {
 			position: absolute;
+			top: 5%;
+			left: 2%;
+			width: 25%;
 			height: 50%;			
 			border: 2px solid;
 		}
@@ -14,7 +22,46 @@
 			top: 57%;
 			left: 2%;
 		}
-		span {
+		#media {
+			position: absolute;
+			top: 0%;
+			left: 65%;
+		}
+		#cormedia {
+			position: absolute;
+			top: 5%;
+			left: 65%;
+			width: 25%;
+			height: 16%;
+			border: 2px solid;
+		}		
+		#max {
+			position: absolute;
+			top: 22%;
+			left: 65%;
+		}
+		#cormax {
+			position: absolute;
+			top: 27%;
+			left: 65%;
+			width: 25%;
+			height: 16%;
+			border: 2px solid;
+		}
+		#cor {
+			position: absolute;
+			top: 44%;
+			left: 65%;
+		}
+		#corpre {
+			position: absolute;
+			top: 49%;
+			left: 65%;
+			width: 25%;
+			height: 16%;
+			border: 2px solid;
+		}
+		#espectro {
 			position: absolute;
 			top: 65%;
 			left: 2%;
@@ -30,18 +77,168 @@
 		}
 	</style>
 	<script>
+	function ImgCor(context, largura, altura) {
+		this.ctx = context; // contexto onde tem a imagem
+		this.w = largura;
+		this.h = altura;
+		this.img = context.getImageData(0, 0, this.w, this.h);
+		this.pixels = this.w * this.h; // total de pixels
+		// objetod de dados
+		this.coresHexa = {}; // {0xrrggbb: frequência, ...}
+		this.coresRGB = {}; // {rgb(r,g,b): frequência, ...}
+		this.corMedia = {}; // {rgb: rgb(r,g,b), rgbArray: [r,g,b], hexa: 0xrrggbb}
+		this.corMax = {}; // {rgb: [rgb(r,g,b), frequência], hexa: [0xrrggbb, frequência]}
+		this.corProxima = {} // {rgb: rgb(r,g,b), rgbArray: [r,g,b], hexa: 0xrrggbb, nome:...}
+	}
+	
+	ImgCor.VERMELHO = [255,0,0,'vermelho'];
+	ImgCor.VERDE = [0,255,0,'verde'];
+	ImgCor.AZUL = [0,0,255,'azul'];
+	ImgCor.AMARELO = [255,255,0,'amarelo'];
+	ImgCor.CIANO = [0,255,255,'ciano'];
+	ImgCor.MAGENTA = [255,0,255,'magenta'];
+	ImgCor.LARANJA = [255,128,0,'laranja'];
+	ImgCor.OLIVA = [128,128,0,'verde-oliva'];
+	ImgCor.TURQUESA = [64,224,208,'azul-turquesa'];
+	ImgCor.CELESTE = [0,128,255,'azul-celeste'];
+	ImgCor.ROXO = [128,0,128,'roxo'];
+	ImgCor.ROSA = [255,0,128,'rosa'];
+	
+	ImgCor.prototype.processar = function() { // preenche todos os objetos de dados
+		var i; // índice do array data
+		var r; // componete vermelho rgb em data
+		var g; // componete verde rgb em data
+		var b; // componete azul em data
+		var rt = 0; // a soma dos valores de vermelho em rgb
+		var gt = 0; // a soma dos valores de verde em rgb
+		var bt = 0; // a soma dos valores de azul em rgb
+		var rh; // componete vermelho convertido para hexa
+		var gh; // componete verde convertido para hexa
+		var bh; // componete azul convertido para hexa em data
+		var rgb; // string da cor em rgb
+		var hexa; // string da cor em hexa
+		
+		for (var x = 0; x < this.w; x++) {
+			for (var y = 0; y < this.h; y++) {
+				i = (x + y * this.w ) * 4;
+				// preenche coresRGB
+				r = this.img.data[i];
+				g = this.img.data[i + 1];
+				b = this.img.data[i + 2];
+				rgb = 'rgb(' + r + ',' + g + ',' + b + ')';
+				if (!this.coresRGB[rgb]) this.coresRGB[rgb] = 1;
+				else this.coresRGB[rgb] += 1;
+				// incrementa o total de cada cor primária
+				rt += r;
+				gt += g;
+				bt += b;
+				// preenche coresHexa
+				rh = r.toString(16);
+				gh = g.toString(16);
+				bh = b.toString(16);
+				hexa = '0x' + rh + gh + bh;
+				if (!this.coresHexa[hexa]) this.coresHexa[hexa] = 1;
+				else this.coresHexa[hexa] += 1;
+			}
+		}
+		// preenche corMedia
+		var rm = Math.round(rt / this.pixels);
+		var gm = Math.round(gt / this.pixels);
+		var bm = Math.round(bt / this.pixels);
+		this.corMedia.rgbArray = [rm, gm, bm];
+		this.corMedia.rgb = 'rgb(' + rm + ',' + gm + ',' + bm + ')';
+		this.corMedia.hexa = '0x' + rm.toString(16) + gm.toString(16) + bm.toString(16);
+		// preenche corMax
+		var max = 0;
+		for (var cor in this.coresHexa) {
+			if (this.coresHexa[cor] > max) {
+				max = this.coresHexa[cor];
+				this.corMax.hexa = [cor, this.coresHexa[cor]];
+			}
+		}
+		max = 0;
+		for (var cor in this.coresRGB) {
+			if (this.coresRGB[cor] > max) {
+				max = this.coresRGB[cor];
+				this.corMax.rgb = [cor, this.coresRGB[cor]];
+			}
+		}
+		// preencher corProxima
+		this._acharCorMaisProxima();
+	}
+	
+	ImgCor.prototype._acharCorMaisProxima = function() {
+		// cores pré-definidas
+		var cores = [ImgCor.VERMELHO,
+					 ImgCor.VERDE, 
+					 ImgCor.AZUL, 
+					 ImgCor.AMARELO, 
+					 ImgCor.CIANO,
+					 ImgCor.MAGENTA, 
+					 ImgCor.LARANJA, 
+					 ImgCor.OLIVA, 
+					 ImgCor.TURQUESA,
+					 ImgCor.CELESTE, 
+					 ImgCor.ROXO, 
+					 ImgCor.ROSA];
+		// componentes da cor média
+		var rm = this.corMedia.rgbArray[0];
+		var gm = this.corMedia.rgbArray[1];
+		var bm = this.corMedia.rgbArray[2];
+		// arrays das diferenças absolutas à média de cada componente
+		var dr = [];
+		var dg = [];
+		var db = [];
+		// índices da cor de menor diferença
+		var minr = Math.abs(cores[0][0] - rm); 
+		var ming = Math.abs(cores[0][1] - gm);
+		var minb = Math.abs(cores[0][2] - bm); 
+		var cor; // armazena a cor mais próxima
+		// alimenta os arrays de diferenças
+		for (var i in cores) {
+			dr.push(Math.abs(cores[i][0] - rm));
+			dg.push(Math.abs(cores[i][1] - gm));
+			db.push(Math.abs(cores[i][2] - bm));
+		}
+		// encontra o componente com diferença mínima
+		for (var i in dr) {
+			if (dr[i] < minr) minr = i;
+		}
+		for (var i in dg) {
+			if (dg[i] < ming) ming = i;
+		}
+		for (var i in db) {
+			if (db[i] < minb) minb = i;
+		}
+		// encontra a cor se tiver na lista
+		if (minr == ming && ming == minb ) {
+			cor = cores[minr]
+			this.corProxima.rgbArray = [cor[0], cor[1], cor[2]];
+			this.corProxima.rgb = 'rgb(' + cor[0] + ',' + cor[1] + ',' + cor[2] + ')';
+			this.corProxima.hexa = '0x' + cor[0].toString(16) + cor[1].toString(16) + cor[2].toString(16);
+			this.corProxima.nome = cor[3];
+		}
+	};
+	</script>
+	<script>
 	var canvas; // canvas
 	var ctx; // contexto 2d do canvas
 	var histoCanvas; // canvas onde terá o histograma das cores
-	var histo = {}; // objeto literal histograma;
 	var file; // input de arquivos
-		
+	var processador; // processador de cores
+	var divMedia;
+	var divMax;
+	var divCor;
+	
 	function init() {
 		canvas = document.getElementById('canvas');
 		ctx = canvas.getContext('2d');
 		histoCanvas = document.getElementById('histo');
 		ctx_h = histoCanvas.getContext('2d');
 		file = document.getElementById('file');
+		divMedia = document.getElementById('cormedia');
+		divMax = document.getElementById('cormax');
+		divCor = document.getElementById('corpre');
 		
 		file.onchange = function() {
 			histo = {};
@@ -53,12 +250,20 @@
 				var img = new Image();
 				img.src = leitor.result;
 				img.onload = function() {
+					// ajusta a exibição da imagem com largura proporcional a real
+					canvas.style.width = String(25 * img.width / img.height) + '%';
+					canvas.style.height = String(50) + '%';
 					ctx.drawImage(
 						img, 
 						0, 0, img.width, img.height, 
 						0, 0, canvas.width, canvas.height
 					);					
-					criarHistograma(img);
+					processador = new ImgCor(ctx, canvas.width, canvas.height);
+					processador.processar();
+					document.getElementById('imagem').append(': ' + processador.pixels +
+						' pixels.');
+					desenharHistograma(ctx_h, processador);
+					colorirDivs();
 				}				
 			}
 
@@ -68,32 +273,10 @@
 		}
 	}
 
-	function criarHistograma(imagem) {
-		var pixel;
-		var data;
-		for (var x = 0; x < imagem.width; x++) {
-			for (var y = 0; y < imagem.height; y++) {
-				pixel = ctx.getImageData(x, y, 1, 1);
-				data = pixel.data;
-				alimentarHistograma(data, histo);
-			}
-		}
-		desenharHistograma(ctx_h, histo);
-	}
-	
-	function alimentarHistograma(data, histograma) {
-		var s0 = data[0].toString(16);
-		var s1 = data[1].toString(16);
-		var s2 = data[2].toString(16);
-		var s = '0x' + s0 + s1 + s2;
-		
-		if (!histograma[s]) histograma[s] = 1;
-		else histograma[s] += 1;
-	}
-	
-	function desenharHistograma(context, histograma) {
+	function desenharHistograma(context, ImgCor) {
+		var histograma = ImgCor.coresHexa;
 		var base = 0;
-		var total_freq = frequencia(histograma);
+		var total_freq = ImgCor.pixels;
 		var largura_canvas = context.canvas.width;
 		var largura_grupo = largura_canvas / total_freq;
 		var altura_canvas = context.canvas.height;
@@ -105,21 +288,29 @@
 		}
 	}
 	
-	function frequencia(o) {
-		var total = 0;
-		for (var i in o) {
-			total += o[i];
-		}
-		return total;
+	function colorirDivs() {
+		divMedia.style.background = processador.corMedia.rgb;
+		document.getElementById('media').append(': ' + processador.corMedia.rgb);
+		divMax.style.background = processador.corMax.rgb[0];
+		document.getElementById('max').append(': ' + processador.corMax.rgb[0] + 
+			' em ' + processador.corMax.rgb[1] + ' pixels');
+		divCor.style.background = processador.corProxima.rgb;
+		document.getElementById('corpre').innerHTML = processador.corProxima.nome;
 	}
 	</script>
 </head>
 <body onload='init();'>
-	<b>Selecione a imagem</b>
+	<span id='imagem'><b>Selecione a imagem</b></span>
 	<br/>
-	<canvas id='canvas' width='400' height='400'></canvas>
+	<canvas id='canvas'></canvas>
 	<input type='file' id='file'></file>
-	<span><b>Espectro de Cores</b></span>
+	<span id='media'><b>Cor média</b></span>
+	<div id='cormedia'></div>
+	<span id='max'><b>Cor mais frequente</b></span>
+	<div id='cormax'></div>
+	<span id='cor'><b>Cor predefinida mais próxima</b></span>
+	<div id='corpre'></div>
+	<span id='espectro'><b>Espectro de Cores</b></span>
 	<canvas id='histo'></canvas>
 </body>
 </html>
