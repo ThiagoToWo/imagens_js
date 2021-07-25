@@ -91,18 +91,33 @@
 		this.corProxima = {} // {rgb: rgb(r,g,b), rgbArray: [r,g,b], hexa: 0xrrggbb, nome:...}
 	}
 	
-	ImgCor.VERMELHO = [255,0,0,'vermelho'];
-	ImgCor.VERDE = [0,255,0,'verde'];
+	ImgCor.PRETO = [0,0,0,'preto'];
+	ImgCor.MARINHO = [0,0,128,'azul marinho'];
 	ImgCor.AZUL = [0,0,255,'azul'];
-	ImgCor.AMARELO = [255,255,0,'amarelo'];
-	ImgCor.CIANO = [0,255,255,'ciano'];
-	ImgCor.MAGENTA = [255,0,255,'magenta'];
-	ImgCor.LARANJA = [255,128,0,'laranja'];
-	ImgCor.OLIVA = [128,128,0,'verde-oliva'];
-	ImgCor.TURQUESA = [64,224,208,'azul-turquesa'];
-	ImgCor.CELESTE = [0,128,255,'azul-celeste'];
+	ImgCor.VERDE = [0,128,0,'verde'];	
+	ImgCor.PETROLEO = [0,128,128,'azul petróleo'];
+	ImgCor.DODGER = [0,128,255,'azul dodger'];	
+	ImgCor.LIMA = [0,255,0,'lima'];
+	ImgCor.PRIMAVERA = [0,255,128,'verde primavera'];
+	ImgCor.AQUA = [0,255,255,'aqua'];
+	ImgCor.VINHO = [128,0,0,'vinho'];
 	ImgCor.ROXO = [128,0,128,'roxo'];
-	ImgCor.ROSA = [255,0,128,'rosa'];
+	ImgCor.INDIGO = [128,0,255,'índigo elétrico'];
+	ImgCor.OLIVA = [128,128,0,'verde oliva'];
+	ImgCor.CINZA = [128,128,128,'cinza'];
+	ImgCor.ARDOSIA = [128,128,255,'azul ardósia claro'];
+	ImgCor.VERDE_CHOQUE = [128,255,0,'verde choque'];
+	ImgCor.VERDE_CLARO = [128,255,128,'verde claro'];
+	ImgCor.AZUL_ELETRICO = [128,255,255,'azul elétrico'];	
+	ImgCor.VERMELHO = [255,0,0,'vermelho'];
+	ImgCor.ROSA_CHOQUE = [255,0,128,'rosa choque'];
+	ImgCor.MAGENTA = [255,0,255,'magenta'];
+	ImgCor.LARANJA_ESCURO = [255,128,0,'laranja escuro'];
+	ImgCor.CORAL_ESCURO = [255,128,128,'coral escuro'];
+	ImgCor.ROSA_FUCSIA = [255,128,255,'rosa fúcsia'];
+	ImgCor.AMARELO = [255,255,0,'amarelo'];
+	ImgCor.HAMAMELIA = [255,255,128,'Hamamélia'];
+	ImgCor.BRANCO = [255,255,255,'branco'];
 	
 	ImgCor.prototype.processar = function() { // preenche todos os objetos de dados
 		var i; // índice do array data
@@ -169,56 +184,58 @@
 	
 	ImgCor.prototype._acharCorMaisProxima = function() {
 		// cores pré-definidas
-		var cores = [ImgCor.VERMELHO,
-					 ImgCor.VERDE, 
-					 ImgCor.AZUL, 
-					 ImgCor.AMARELO, 
-					 ImgCor.CIANO,
-					 ImgCor.MAGENTA, 
-					 ImgCor.LARANJA, 
-					 ImgCor.OLIVA, 
-					 ImgCor.TURQUESA,
-					 ImgCor.CELESTE, 
-					 ImgCor.ROXO, 
-					 ImgCor.ROSA];
+		var cores = [ImgCor.PRETO,
+					ImgCor.MARINHO,
+					ImgCor.AZUL,
+					ImgCor.VERDE,
+					ImgCor.PETROLEO,
+					ImgCor.DODGER,
+					ImgCor.LIMA,
+					ImgCor.PRIMAVERA,
+					ImgCor.AQUA,
+					ImgCor.VINHO,
+					ImgCor.ROXO,
+					ImgCor.INDIGO,
+					ImgCor.OLIVA,
+					ImgCor.CINZA,
+					ImgCor.ARDOSIA,
+					ImgCor.VERDE_CHOQUE,
+					ImgCor.VERDE_CLARO,
+					ImgCor.AZUL_ELETRICO,
+					ImgCor.VERMELHO,
+					ImgCor.ROSA_CHOQUE,
+					ImgCor.MAGENTA,
+					ImgCor.LARANJA_ESCURO,
+					ImgCor.CORAL_ESCURO,
+					ImgCor.ROSA_FUCSIA,
+					ImgCor.AMARELO,
+					ImgCor.HAMAMELIA,
+					ImgCor.BRANCO];
 		// componentes da cor média
 		var rm = this.corMedia.rgbArray[0];
 		var gm = this.corMedia.rgbArray[1];
 		var bm = this.corMedia.rgbArray[2];
-		// arrays das diferenças absolutas à média de cada componente
-		var dr = [];
-		var dg = [];
-		var db = [];
-		// índices da cor de menor diferença
-		var minr = Math.abs(cores[0][0] - rm); 
-		var ming = Math.abs(cores[0][1] - gm);
-		var minb = Math.abs(cores[0][2] - bm); 
-		var cor; // armazena a cor mais próxima
-		// alimenta os arrays de diferenças
-		for (var i in cores) {
-			dr.push(Math.abs(cores[i][0] - rm));
-			dg.push(Math.abs(cores[i][1] - gm));
-			db.push(Math.abs(cores[i][2] - bm));
-		}
-		// encontra o componente com diferença mínima
-		for (var i in dr) {
-			if (dr[i] < minr) minr = i;
-		}
-		for (var i in dg) {
-			if (dg[i] < ming) ming = i;
-		}
-		for (var i in db) {
-			if (db[i] < minb) minb = i;
-		}
+		// valorres dos componentes da cor de menor diferença
+		var ir = this._maisProximo(rm);
+		var ig = this._maisProximo(gm);
+		var ib = this._maisProximo(bm);
 		// encontra a cor se tiver na lista
-		if (minr == ming && ming == minb ) {
-			cor = cores[minr]
-			this.corProxima.rgbArray = [cor[0], cor[1], cor[2]];
-			this.corProxima.rgb = 'rgb(' + cor[0] + ',' + cor[1] + ',' + cor[2] + ')';
-			this.corProxima.hexa = '0x' + cor[0].toString(16) + cor[1].toString(16) + cor[2].toString(16);
-			this.corProxima.nome = cor[3];
-		}
+		for (var i in cores) {
+			if (cores[i][0] == ir && cores[i][1] == ig && cores[i][2] == ib) {
+				cor = cores[i];
+				this.corProxima.rgbArray = [cor[0], cor[1], cor[2]];
+				this.corProxima.rgb = 'rgb(' + cor[0] + ',' + cor[1] + ',' + cor[2] + ')';
+				this.corProxima.hexa = '0x' + cor[0].toString(16) + cor[1].toString(16) + cor[2].toString(16);
+				this.corProxima.nome = cor[3];
+			}
+		}		
 	};
+	
+	ImgCor.prototype._maisProximo = function(valor) {
+		if (valor < 85) return 0;
+		else if (valor <= 170) return 128;
+		else return 255;
+	}
 	</script>
 	<script>
 	var canvas; // canvas
@@ -295,7 +312,12 @@
 		document.getElementById('max').append(': ' + processador.corMax.rgb[0] + 
 			' em ' + processador.corMax.rgb[1] + ' pixels');
 		divCor.style.background = processador.corProxima.rgb;
-		document.getElementById('corpre').innerHTML = processador.corProxima.nome;
+		if (processador.corProxima.nome == 'preto') {
+			divCor.innerHTML = '<font style="color:white">' + processador.corProxima.nome + 
+			': ' + processador.corProxima.rgb + '</font>';
+		} else {
+			divCor.innerHTML = processador.corProxima.nome + ': ' + processador.corProxima.rgb;
+		}
 	}
 	</script>
 </head>
