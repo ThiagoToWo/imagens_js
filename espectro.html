@@ -4,12 +4,19 @@
 	<title>Espectro de Cores</title>
 	<meta charset='utf-8'/>
 	<style>
-		#imagem {
+		.box {
+			position: absolute;
+			left: 55%;
+			width: 25%;
+			height: 16%;
+			border: 2px solid;
+		}
+		#imagem { /*título da imagem*/
 			position: absolute;
 			top: 0%;
 			left: 2%;
 		}
-		#canvas {
+		#canvas { /*box da imagem*/
 			position: absolute;
 			top: 5%;
 			left: 2%;
@@ -17,56 +24,41 @@
 			height: 50%;			
 			border: 2px solid;
 		}
-		input {
+		input { /*botão file*/
 			position: absolute;
 			top: 57%;
 			left: 2%;
 		}
-		#media {
+		#media { /*título da cor média*/
 			position: absolute;
 			top: 0%;
-			left: 65%;
+			left: 55%;
 		}
-		#cormedia {
-			position: absolute;
+		#cormedia { /*box da cor média*/
 			top: 5%;
-			left: 65%;
-			width: 25%;
-			height: 16%;
-			border: 2px solid;
 		}		
-		#max {
+		#max { /*título da cor máxima*/
 			position: absolute;
 			top: 22%;
-			left: 65%;
+			left: 55%;
 		}
-		#cormax {
-			position: absolute;
+		#cormax { /*box da cor máxima*/
 			top: 27%;
-			left: 65%;
-			width: 25%;
-			height: 16%;
-			border: 2px solid;
 		}
-		#cor {
+		#cor { /*título da cor mais próxima*/
 			position: absolute;
 			top: 44%;
-			left: 65%;
+			left: 55%;
 		}
-		#corpre {
-			position: absolute;
+		#corpre { /*box da cor mais próxima*/
 			top: 49%;
-			left: 65%;
-			width: 25%;
-			height: 16%;
-			border: 2px solid;
 		}
-		#espectro {
+		#espectro { /*título do espectro*/
 			position: absolute;
 			top: 65%;
 			left: 2%;
 		}
-		#histo {
+		#histo { /*box do espectro*/
 			position: absolute;
 			top: 70%;
 			left: 2%;
@@ -74,6 +66,78 @@
 			height: 20%;
 			border-bottom: 2px solid;
 			border-top: 2px solid;
+		}
+		
+		@media screen and (orientation: portrait) {
+			.titulo {
+				position: absolute;
+				left: 2%;
+				font-size: 29px;
+			}
+			.box {
+				position: absolute;
+				left: 2%;
+				width: 96%;
+				height: 16%;
+				border: 2px solid;
+			}
+			#imagem { /*título da imagem*/
+				position: absolute;
+				top: 2%;
+				left: 2%;
+			}
+			#canvas { /*box da imagem*/
+				position: absolute;
+				top: 5%;
+				left: 2%;
+				width: 96%;
+				height: 50%;			
+				border: 2px solid;
+			}
+			input { /*botão file*/
+				position: absolute;
+				top: 57%;
+				left: 2%;
+				font-size: 29px;
+			}
+			#media { /*título da cor média*/
+				position: absolute;
+				top: 62%;
+				left: 2%;
+			}
+			#cormedia { /*box da cor média*/
+				top: 65%;				
+			}		
+			#max { /*título da cor máxima*/
+				position: absolute;
+				top: 84%;
+				left: 2%;				
+			}
+			#cormax { /*box da cor máxima*/
+				top: 87%;				
+			}
+			#cor { /*título da cor mais próxima*/
+				position: absolute;
+				top: 106%;
+				left: 2%;
+			}
+			#corpre { /*box da cor mais próxima*/
+				top: 109%;
+			}
+			#espectro { /*título do espectro*/
+				position: absolute;
+				top: 127%;
+				left: 2%;
+			}
+			#histo { /*box do espectro*/
+				position: absolute;
+				top: 130%;
+				left: 2%;
+				width: 96%;
+				height: 20%;
+				border-bottom: 2px solid;
+				border-top: 2px solid;
+			}
 		}
 	</style>
 	<script>
@@ -243,9 +307,10 @@
 	var histoCanvas; // canvas onde terá o histograma das cores
 	var file; // input de arquivos
 	var processador; // processador de cores
-	var divMedia;
-	var divMax;
-	var divCor;
+	var divMedia; // div da cor média
+	var divMax; // div da cor mais frequente
+	var divCor; // div da cor mais próxima
+	var img; // imagem a ser carregada
 	
 	function init() {
 		canvas = document.getElementById('canvas');
@@ -264,12 +329,11 @@
 			leitor.readAsDataURL(foto);
 			
 			leitor.onload = function() {
-				var img = new Image();
+				img = new Image();
 				img.src = leitor.result;
 				img.onload = function() {
-					// ajusta a exibição da imagem com largura proporcional a real
-					canvas.style.width = String(25 * img.width / img.height) + '%';
-					canvas.style.height = String(50) + '%';
+					// ajusta a exibição da imagem com largura proporcional a real					
+					ajustarOrientacao();
 					ctx.drawImage(
 						img, 
 						0, 0, img.width, img.height, 
@@ -288,8 +352,22 @@
 				alert(e);
 			}
 		}
+		
+		window.onresize = function() {
+			ajustarOrientacao();
+		}
 	}
-
+	
+	function ajustarOrientacao() {
+		// ajusta a exibição da imagem com largura proporcional a real					
+		if (window.innerWidth < window.innerHeight) { // modo retrato
+			canvas.style.width = String(76.8 * img.width / img.height) + '%';
+			canvas.style.height = String(50) + '%';
+		} else { // modo paisagem
+			canvas.style.width = String(21.4 * img.width / img.height) + '%';
+			canvas.style.height = String(50) + '%';
+		}
+	}
 	function desenharHistograma(context, ImgCor) {
 		var histograma = ImgCor.coresHexa;
 		var base = 0;
@@ -322,17 +400,17 @@
 	</script>
 </head>
 <body onload='init();'>
-	<span id='imagem'><b>Selecione a imagem</b></span>
+	<span class='titulo' id='imagem'><b>Selecione a imagem</b></span>
 	<br/>
 	<canvas id='canvas'></canvas>
 	<input type='file' id='file'></file>
-	<span id='media'><b>Cor média</b></span>
-	<div id='cormedia'></div>
-	<span id='max'><b>Cor mais frequente</b></span>
-	<div id='cormax'></div>
-	<span id='cor'><b>Cor predefinida mais próxima</b></span>
-	<div id='corpre'></div>
-	<span id='espectro'><b>Espectro de Cores</b></span>
+	<span class='titulo' id='media'><b>Cor média</b></span>
+	<div class='box' id='cormedia'></div>
+	<span class='titulo' id='max'><b>Cor mais frequente</b></span>
+	<div  class='box' id='cormax'></div>
+	<span class='titulo' id='cor'><b>Cor predefinida mais próxima</b></span>
+	<div  class='box' id='corpre'></div>
+	<span class='titulo' id='espectro'><b>Espectro de Cores</b></span>
 	<canvas id='histo'></canvas>
 </body>
 </html>
