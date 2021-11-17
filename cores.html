@@ -1,0 +1,44 @@
+<head>
+<script src='JS/matematica/matematica.js'></script>
+</head>
+<body>
+<script>
+function agrupamentos(array) {
+	var ag = [];
+	var el;
+	for (var i = 0; i < array.length; i++) {		
+		for (var j = 0; j < array.length; j++) {			
+			for (var k = 0; k < array.length; k++) {
+				el = [array[i],array[j],array[k]];
+				ag.push(el);
+			}
+		}			
+	}
+	return ag;
+}
+
+var valores = agrupamentos([0,128,255]);
+var div = document.createElement('div');
+div.innerHTML = '<font style="color:white">rgb(' + valores[0][0] + ',' 
+					+ valores[0][1] + ',' 
+					+ valores[0][2] + ') &#8594; #' + valores[0][0].toString(16) 
+					+ valores[0][1].toString(16) 
+					+ valores[0][2].toString(16) + '</font>';
+div.style.background = 'rgb(' + valores[0][0] + ',' 
+							+ valores[0][1] + ',' 
+							+ valores[0][2] + ')';
+document.body.appendChild(div);
+for (var i = 1; i < valores.length; i++) {
+	div = document.createElement('div');
+	div.innerHTML = 'rgb(' + valores[i][0] + ',' 
+					+ valores[i][1] + ',' 
+					+ valores[i][2] + ')&#8594; #' + valores[i][0].toString(16)
+					+ valores[i][1].toString(16)
+					+ valores[i][2].toString(16);
+	div.style.background = 'rgb(' + valores[i][0] + ',' 
+							+ valores[i][1] + ',' 
+							+ valores[i][2] + ')';
+	document.body.appendChild(div);
+}
+</script>
+</body>
