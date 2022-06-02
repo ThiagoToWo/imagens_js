@@ -353,12 +353,12 @@
 			}
 		}
 		
-		/*window.onresize = function() {
+		window.onresize = function() {
 			ajustarOrientacao();
-		}*/
+		}
 	}
 	
-	/*function ajustarOrientacao() {
+	function ajustarOrientacao() {
 		// ajusta a exibição da imagem com largura proporcional a real					
 		if (window.innerWidth < window.innerHeight) { // modo retrato
 			canvas.style.width = String(76.8 * img.width / img.height) + '%';
@@ -367,7 +367,7 @@
 			canvas.style.width = String(21.4 * img.width / img.height) + '%';
 			canvas.style.height = String(50) + '%';
 		}
-	}*/
+	}
 	
 	function desenharHistograma(context, ImgCor) {
 		var histograma = ImgCor.coresHexa;
